@@ -15,14 +15,15 @@ import pandas as pd
 import numpy as np
 from torch.utils.data import DataLoader, Dataset
 
-from image_embedding import EmbeddingNet
+
 
 class ShopeeDataset(Dataset):
-    def __init__(self, df, img_dirs, transforms = None):
+    def __init__(self, df, img_dirs, transforms = None, have_label = False):
         super(ShopeeDataset, self).__init__()
         self.df = df
         self.img_dirs = img_dirs
         self.transforms = transforms
+        self.have_label = have_label
 
     def __len__(self):
         return len(self.df)
@@ -30,13 +31,17 @@ class ShopeeDataset(Dataset):
     def __getitem__(self, ids):
         image_names = self.df.iloc[ids, 1]
         image_titles = self.df.iloc[ids, 3]
+        if self.have_label:
+            image_labels = self.df.iloc[ids, 5]
 
         image_paths = self.img_dirs + image_names
         images = Image.open(image_paths)
         if self.transforms is not None:
             images = self.transforms(images)
-
-        return images, image_titles
+        if self.have_label == True:
+            return images, image_titles, image_labels
+        else:
+            return images, image_titles
 
 def getTransform():
     return Compose([
@@ -48,29 +53,10 @@ def getTransform():
         Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
 
-def getDataloader(df, img_dir, batch_size, shuffle = True, transforms = None):
-    dataset = ShopeeDataset(df, img_dir, transforms=transforms)
+def getDataloader(df, img_dir, batch_size, shuffle = True, transforms = None, have_label = False):
+    dataset = ShopeeDataset(df, img_dir, transforms=transforms, have_label= have_label)
     dataloader = DataLoader(dataset, batch_size= batch_size, shuffle=shuffle, num_workers=4)
     return dataloader
-
-
-
-if __name__ == '__main__':
-    pass
-    df = pd.read_csv('train.csv')
-    img_dirs = 'train_images/'
-    dataset = ShopeeDataset(df = df, img_dirs = img_dirs, transforms = None)
-    dataloader = getDataloader(df, img_dirs, 16, False, transforms=getTransform())
-
-    model_name = 'nfnet_f0'
-    model = EmbeddingNet(model_name)
-    #print(model)
-    i = 0
-    for image, title in dataloader:
-        out = model(image)
-        print(out[0])
-        i += 1
-        if(i >= 3) : break
 
 
 
