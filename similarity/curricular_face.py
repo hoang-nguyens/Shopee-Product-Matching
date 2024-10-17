@@ -16,7 +16,7 @@ class CurricularFace(nn.Module):
         self.sin_m = torch.sin(torch.tensor(m))
 
         self.W = nn.Parameter(torch.FloatTensor(output, input))
-        nn.init.xavier_normal(self.W)
+        nn.init.xavier_normal_(self.W)
 
 
 

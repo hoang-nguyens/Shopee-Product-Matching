@@ -13,7 +13,7 @@ class ArcFace(nn.Module):
         self.output = output
 
         self.W = nn.Parameter(torch.FloatTensor(output, input))
-        nn.init.xavier_normal(self.W)
+        nn.init.xavier_normal_(self.W)
 
     def forward(self, embed_vector, label = None):
         embedding = F.normalize(embed_vector, dim = 1, p = 2)
