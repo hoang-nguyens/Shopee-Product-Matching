@@ -1,17 +1,18 @@
-from transformers import BertTokenizer, BertModel
+from transformers import XLMTokenizer, XLMModel
 import torch
 import torch.nn as nn
 
-class BertEmbedding(nn.Module):
+class XLMRoberta(nn.Module):
     def __init__(self, model_name, fc_dim = 512):
-        super(BertEmbedding, self).__init__()
-        self.tokenizer = BertTokenizer.from_pretrained(model_name)
-        self.model = BertModel.from_pretrained(model_name)
+        super(XLMRoberta, self).__init__()
+        self.tokenizer = XLMTokenizer.from_pretrained(model_name)
+        self.model = XLMModel.from_pretrained(model_name)
         self.model.eval()
 
         self.hidden_size = self.model.config.hidden_size
         self.fc = nn.Linear(self.hidden_size, fc_dim)
         self.bn = nn.BatchNorm1d(fc_dim)
+
 
         nn.init.xavier_normal_(self.fc.weight)
         nn.init.constant_(self.fc.bias, 0)
@@ -33,6 +34,7 @@ class BertEmbedding(nn.Module):
         with torch.no_grad():
             outputs = self.model(input_ids = input_ids, attention_mask = attention_mask)
         embedding = outputs.last_hidden_state[:,0,:]
+
         return embedding
 
     def forward(self, text):
@@ -40,3 +42,7 @@ class BertEmbedding(nn.Module):
         out = self.fc(out)
         out = self.bn(out)
         return out
+
+
+
+
